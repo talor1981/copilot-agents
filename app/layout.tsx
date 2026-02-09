@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Header } from "@/components/Header";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ReduxProvider } from "@/lib/ReduxProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,15 +34,17 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           suppressHydrationWarning={true}
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Header />
-            {children}
-          </ThemeProvider>
+          <ReduxProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Header />
+              {children}
+            </ThemeProvider>
+          </ReduxProvider>
         </body>
       </html>
     </ClerkProvider>

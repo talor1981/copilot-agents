@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { DashboardContent } from "./DashboardContent";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -7,10 +8,10 @@ export default async function DashboardPage() {
   if (!userId) {
     redirect("/");
   }
-  //password: Blue-Elephant-99-Sky!
+
   return (
-    <div>
-      <h1>Dashboard</h1>
+    <div className="container mx-auto px-4 py-8">
+      <DashboardContent />
     </div>
   );
 }

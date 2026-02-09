@@ -1,3 +1,6 @@
+---
+description: Read this file before you start working on any authentication-related features. It contains critical rules and patterns for using Clerk in this project.
+---
 # Authentication Rules
 
 ## ⚠️ CRITICAL: Clerk-Only Authentication

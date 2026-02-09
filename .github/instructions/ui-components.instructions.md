@@ -1,3 +1,6 @@
+---
+description: Read this file before you start working on any UI-related features. It contains critical rules and patterns for using shadcn/ui components in this project.
+---
 # UI Components Rules
 
 ## ⚠️ CRITICAL: shadcn/ui Components Only
