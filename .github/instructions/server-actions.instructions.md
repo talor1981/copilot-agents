@@ -339,29 +339,172 @@ export async function createItem(input: CreateItemInput) {
 
 ## Integration with RTK Query
 
-While RTK Query handles data **fetching** (reads), Server Actions handle data **mutations** (writes). They work together:
+This project uses **both** RTK Query and Server Actions, each for their specific purpose:
 
-* **RTK Query:** GET requests, caching, optimistic updates for UI
-* **Server Actions:** POST/PUT/DELETE operations, database mutations
-* **Cache Invalidation:** After successful server action, trigger RTK Query refetch or use `revalidatePath()`
+### When to Use What
+
+| Use Case | Tool | File Name | Example |
+|----------|------|-----------|---------|
+| **External API Calls** | RTK Query | `[feature]Api.ts` | Fetch from 3rd party APIs |
+| **Internal Data Fetching** | RTK Query | `[feature]Api.ts` | GET data from your database via API routes |
+| **Client-Side State** | RTK Query | `[feature]Api.ts` | Caching, polling, optimistic updates |
+| **Database Mutations** | Server Actions | `actions.ts` | Create/Update/Delete in your database |
+| **Form Submissions** | Server Actions | `actions.ts` | Validated mutations with auth |
+| **Server-Side Logic** | Server Actions | `actions.ts` | Business logic requiring server context |
+
+### Architectural Pattern
 
 ```typescript
+// RTK Query for Data Fetching (reads)
+// filepath: app/dashboard/dashboardApi.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export const dashboardApi = createApi({
+  reducerPath: 'dashboardApi',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  tagTypes: ['Items'],
+  endpoints: (builder) => ({
+    getItems: builder.query<Item[], void>({
+      query: () => '/items',
+      providesTags: ['Items'],
+    }),
+  }),
+});
+
+export const { useGetItemsQuery } = dashboardApi;
+```
+
+```typescript
+// Server Actions for Mutations (writes)
+// filepath: app/dashboard/actions.ts
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { createItem } from "@/data/items";
+import { z } from "zod";
+
+const createItemSchema = z.object({
+  title: z.string().min(1),
+  url: z.string().url(),
+});
+
+export async function createItemAction(input: z.infer<typeof createItemSchema>) {
+  const { userId } = await auth();
+  if (!userId) return { success: false, error: "Unauthorized" };
+
+  const validation = createItemSchema.safeParse(input);
+  if (!validation.success) {
+    return { success: false, error: validation.error.errors[0].message };
+  }
+
+  try {
+    const item = await createItem({ ...validation.data, userId });
+    return { success: true, data: item };
+  } catch (error) {
+    return { success: false, error: "Failed to create item" };
+  }
+}
+```
+
+```typescript
+// Client Component using both
+// filepath: app/dashboard/ItemManager.tsx
 'use client';
 
-import { useGetItemsQuery } from './api';
+import { useGetItemsQuery } from './dashboardApi';
 import { createItemAction } from './actions';
 
 export function ItemManager() {
-  const { data, refetch } = useGetItemsQuery();
+  // RTK Query for fetching data
+  const { data, refetch, isLoading } = useGetItemsQuery();
 
+  // Server Action for mutation
   async function handleCreate(input: CreateItemInput) {
     const result = await createItemAction(input);
+    
     if (result.success) {
-      // Refetch RTK Query data after mutation
+      // Refetch RTK Query data after successful mutation
       refetch();
+      // Or use revalidatePath in the server action
+    } else {
+      console.error(result.error);
     }
   }
 
-  return (/* UI */);
+  return (
+    <div>
+      {isLoading ? 'Loading...' : data?.map(item => (
+        <div key={item.id}>{item.title}</div>
+      ))}
+      <button onClick={() => handleCreate({ title: 'New', url: 'https://...' })}>
+        Create
+      </button>
+    </div>
+  );
 }
 ```
+
+### Cache Invalidation Strategies
+
+After a successful server action, invalidate RTK Query cache:
+
+**Option 1: Refetch in Client Component**
+```typescript
+const result = await createItemAction(input);
+if (result.success) {
+  refetch(); // Trigger RTK Query refetch
+}
+```
+
+**Option 2: Revalidate in Server Action**
+```typescript
+"use server";
+import { revalidatePath } from "next/cache";
+
+export async function createItemAction(input: CreateItemInput) {
+  // ... mutation logic ...
+  revalidatePath("/dashboard"); // Revalidate Next.js cache
+  return { success: true };
+}
+```
+
+**Option 3: Tag Invalidation (Advanced)**
+```typescript
+// In RTK Query API
+export const dashboardApi = createApi({
+  endpoints: (builder) => ({
+    getItems: builder.query({
+      providesTags: ['Items'],
+    }),
+    createItem: builder.mutation({
+      invalidatesTags: ['Items'], // Auto-refetch queries with 'Items' tag
+    }),
+  }),
+});
+```
+
+### File Organization Example
+
+```
+app/
+└── dashboard/
+    ├── page.tsx           # Server Component (layout/auth)
+    ├── ItemManager.tsx    # Client Component (UI + logic)
+    ├── actions.ts         # Server Actions (mutations)
+    └── dashboardApi.ts    # RTK Query (data fetching)
+
+data/
+└── items.ts              # Database helpers
+
+lib/
+├── store.ts              # Redux store config
+└── ReduxProvider.tsx     # Redux provider
+```
+
+### Best Practices
+
+1. **RTK Query** for all data fetching (external APIs, internal reads)
+2. **Server Actions** for all database mutations
+3. **Colocate** both files with the components that use them
+4. **Invalidate cache** after mutations to keep UI in sync
+5. **Type everything** - use TypeScript for inputs, outputs, and state

@@ -17,13 +17,42 @@ export interface GetApisParams {
   sort?: 'best' | 'new' | 'fast' | 'popular' | 'noerror' | 'reliable' | 'all';
 }
 
+// User's Link type
+export interface UserLink {
+  id: string;
+  shortCode: string;
+  originalUrl: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Dynamic base query that handles both external and internal APIs
+const dynamicBaseQuery = fetchBaseQuery({
+  baseUrl: 'https://www.freepublicapis.com/api',
+  prepareHeaders: (headers) => {
+    return headers;
+  },
+});
+
 // RTK Query API slice following strict HTTP 200 validation
 export const dashboardApi = createApi({
   reducerPath: 'dashboardApi',
-  baseQuery: fetchBaseQuery({ 
-    baseUrl: 'https://www.freepublicapis.com/api',
-  }),
-  tagTypes: ['PublicAPIs'],
+  baseQuery: async (args, api, extraOptions) => {
+    // Check if this is an internal API call (starts with /api/)
+    if (typeof args === 'string' && args.startsWith('/api/')) {
+      // For internal APIs, use relative path
+      const result = await fetchBaseQuery({ baseUrl: '' })(args, api, extraOptions);
+      return result;
+    } else if (typeof args === 'object' && args.url?.startsWith('/api/')) {
+      // For internal APIs with object config
+      const result = await fetchBaseQuery({ baseUrl: '' })(args, api, extraOptions);
+      return result;
+    }
+    // For external APIs, use the default base query
+    return dynamicBaseQuery(args, api, extraOptions);
+  },
+  tagTypes: ['PublicAPIs', 'UserLinks'],
   endpoints: (builder) => ({
     // Get list of public APIs
     getPublicApis: builder.query<PublicAPI[], GetApisParams>({
@@ -64,6 +93,18 @@ export const dashboardApi = createApi({
       },
       providesTags: (result, error, id) => [{ type: 'PublicAPIs', id }],
     }),
+    
+    // Get user's links from internal API
+    getUserLinks: builder.query<UserLink[], void>({
+      query: () => '/api/links',
+      transformResponse: (response: UserLink[], meta) => {
+        if (meta?.response?.status !== 200) {
+          throw new Error('API Response was not 200 OK');
+        }
+        return response;
+      },
+      providesTags: ['UserLinks'],
+    }),
   }),
 });
 
@@ -71,5 +112,6 @@ export const dashboardApi = createApi({
 export const { 
   useGetPublicApisQuery, 
   useGetRandomApiQuery, 
-  useGetApiByIdQuery 
+  useGetApiByIdQuery,
+  useGetUserLinksQuery,
 } = dashboardApi;
