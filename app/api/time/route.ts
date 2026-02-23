@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     // Make server-side request to TimeAPI.io
     const response = await fetch(
-      `https://timeapi.io/api/v1/timezone/zone?timeZone=${encodeURIComponent(timeZone)}`,
+      `https://timeapi.io/api/v1/time/current/zone?timezone=${encodeURIComponent(timeZone)}`,
       {
         headers: {
           'Accept': 'application/json',

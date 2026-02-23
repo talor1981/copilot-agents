@@ -31,15 +31,10 @@ function TimeZoneCard({ timezone }: { timezone: SupportedTimeZone }) {
         ) : data ? (
           <div className="space-y-1">
             <div className="text-2xl font-bold">
-              {new Date(data.local_time).toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit',
-                hour12: false 
-              })}
+              {data.time.split('.')[0]}
             </div>
             <div className="text-sm text-muted-foreground">
-              {new Date(data.local_time).toLocaleDateString('en-US', { 
+              {new Date(data.date).toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
