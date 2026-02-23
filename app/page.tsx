@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Alerts } from "@/components/alerts/alerts";
 import { GlobalTime } from "@/components/global-time/GlobalTime";
 import { Weather } from "@/components/weather/Weather";
+import { ChatButton } from "@/components/chat/ChatButton";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -29,6 +30,7 @@ export default async function Home() {
             Create short, memorable links in seconds. Track performance, manage your URLs, and make every click count.
           </p>
           <Alerts />
+          <ChatButton />
           <GlobalTime />
           <Weather />
         </div>

@@ -2,6 +2,36 @@
 
 This file serves as the entry point for AI coding assistants (LLMs) working on this project.
 
+---
+
+## 🚨 CRITICAL: MANDATORY WORKFLOW REQUIREMENT 🚨
+
+**⚠️ READ THIS FIRST - NON-NEGOTIABLE REQUIREMENT ⚠️**
+
+**YOU MUST ALWAYS FOLLOW THE THREE-AGENT WORKFLOW DESCRIBED BELOW.**
+
+This is **NOT** a suggestion. This is **NOT** optional. This is a **HARD REQUIREMENT**.
+
+### ❌ FORBIDDEN: Direct Implementation
+
+**DO NOT:**
+- Skip the Manager Agent step
+- Go directly to code generation
+- Bypass the Code Review Agent
+- Work as a single agent
+
+### ✅ REQUIRED: Multi-Agent Workflow
+
+**YOU MUST:**
+1. **START** as Manager Agent - Analyze requirements and identify instruction files
+2. **DELEGATE** to Implementation Agent - Generate code following patterns
+3. **VALIDATE** with Code Review Agent - Check against all standards
+4. **DELIVER** as Manager Agent - Present approved code to user
+
+**If you do not follow this workflow, your implementation is INVALID and will be REJECTED.**
+
+---
+
 ## 🤖 Multi-Agent Architecture
 
 This project uses a **three-agent workflow** to ensure code quality and instruction compliance:
@@ -277,14 +307,43 @@ export function InteractiveComponent() {
 ### Next Steps (if applicable)
 ## 🎯 Agent Activation
 
-When working on this project:
+**🚨 MANDATORY WORKFLOW - NO EXCEPTIONS 🚨**
 
-1. **Manager Agent** identifies the task scope and relevant instruction files
-2. **Implementation Agent** generates code following documented patterns
-3. **Review Agent** validates the implementation
-4. **Manager Agent** delivers final approved code
+When working on this project, you **MUST** follow this exact sequence:
 
-This ensures **every line of code** is validated against project standards before delivery.
+### Step 1: Manager Agent (REQUIRED)
+- ✅ Identifies the task scope and relevant instruction files
+- ✅ Reads all relevant documentation
+- ✅ Creates implementation plan
+- ✅ Delegates to Implementation Agent
+
+### Step 2: Implementation Agent (REQUIRED)
+- ✅ Reads instruction files identified by Manager
+- ✅ Generates code following documented patterns
+- ✅ Submits implementation to Review Agent
+
+### Step 3: Review Agent (REQUIRED)
+- ✅ Validates implementation against instruction files
+- ✅ Checks React best practices
+- ✅ Provides verdict: APPROVE / REQUEST CHANGES / REJECT
+- ✅ If changes needed, sends back to Implementation Agent
+
+### Step 4: Manager Agent (REQUIRED)
+- ✅ Reviews approved code
+- ✅ Delivers final validated code to user
+
+**This ensures every line of code is validated against project standards before delivery.**
+
+---
+
+## ⚠️ ENFORCEMENT
+
+**If you skip ANY step in the workflow:**
+- ❌ Your code is considered INVALID
+- ❌ The implementation will be REJECTED
+- ❌ You MUST restart from Step 1 (Manager Agent)
+
+**NO EXCEPTIONS. NO SHORTCUTS. FOLLOW THE WORKFLOW.**
 
 ---
 
