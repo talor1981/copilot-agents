@@ -2,6 +2,57 @@
 
 This file serves as the entry point for AI coding assistants (LLMs) working on this project.
 
+## 🤖 Multi-Agent Architecture
+
+This project uses a **three-agent workflow** to ensure code quality and instruction compliance:
+
+### Agent Roles
+
+1. **📋 Code Manager Agent** (`.github/agents/code-manager.agent.md`)
+   - **Role:** Orchestrator
+   - **Responsibility:** Coordinates workflow between agents
+   - **Tasks:** Requirement analysis, agent delegation, quality assurance
+
+2. **🔨 Component Implementation Agent** (`.github/agents/component-implementer.agent.md`)
+   - **Role:** Code Generator
+   - **Responsibility:** Creates React components and server logic
+   - **Tasks:** TypeScript/React code generation following instruction files
+
+3. **🔍 Code Review Agent** (`.github/agents/code-reviewer.agent.md`)
+   - **Role:** Quality Gatekeeper
+   - **Responsibility:** Validates code against standards
+   - **Tasks:** Pattern validation, React best practices, security review
+
+### Workflow Process
+
+```
+User Request
+     ↓
+[Manager Agent]
+     ├─→ Identifies relevant instruction files
+     ├─→ Reads documentation
+     └─→ Creates implementation plan
+          ↓
+[Implementation Agent]
+     ├─→ Reads instruction files
+     ├─→ Generates code following patterns
+     └─→ Submits implementation
+          ↓
+[Code Review Agent]
+     ├─→ Validates against instruction files
+     ├─→ Checks React best practices
+     └─→ Provides verdict (APPROVE/REQUEST CHANGES/REJECT)
+          ↓
+     [If changes needed]
+          ↓
+     [Implementation Agent fixes]
+          ↓
+     [Review Agent re-validates]
+          ↓
+[Manager Agent]
+     └─→ Delivers final validated code to user
+```
+
 ## 🎯 Quick Start for AI Assistants
 
 ### ⚠️ MANDATORY: Documentation-First Workflow
@@ -82,7 +133,9 @@ components/          # React components
 lib/                # Utilities
 └── utils.ts        # Helper functions
 
-docs/               # Agent instructions
+.github/
+├── agents/         # Agent instruction files
+└── instructions/   # Development instruction files
 ```
 
 ### Common Patterns
@@ -152,12 +205,12 @@ export function InteractiveComponent() {
 
 **🔴 STOP - READ FIRST - CODE SECOND 🔴**
 
-**You MUST read the relevant instruction files BEFORE implementing ANY feature. No code should be written without first consulting these files:**
-
-- **Feature Organization & Folder Structure** → [feature-organization.instructions.md](.github/instructions/feature-organization.instructions.md)
-- **Authentication & User Management** → [authentication-rules.instructions.md](.github/instructions/authentication-rules.instructions.md)
-- **Data Fetching & RTK Query** → [data-fetching.instructions.md](.github/instructions/data-fetching.instructions.md)
-- **Server Actions & Mutations** → [server-actions.instructions.md](.github/instructions/server-actions.instructions.md)
+**You MUST read the relevant instruction files B`.github/instructions/feature-organization.instructions.md`
+- **Authentication & User Management** → `.github/instructions/authentication-rules.instructions.md`
+- **Data Fetching & RTK Query** → `.github/instructions/data-fetching.instructions.md`
+- **Server Actions & Mutations** → `.github/instructions/server-actions.instructions.md`
+- **UI Components** → `.github/instructions/ui-components.instructions.md`
+- **React Best Practices** → `.github/instructions/react-double-check-instructions.md`
 - **UI Components** → [ui-components.instructions.md](.github/instructions/ui-components.instructions.md)
 - **React Best Practices** → [react-double-check-instructions.md](.github/instructions/react-double-check-instructions.md)
 
@@ -179,7 +232,7 @@ export function InteractiveComponent() {
 **AFTER completing ANY code generation task, you MUST provide:**
 
 ### Summary Format:
-```
+```markdown
 ## 📝 Task Summary
 
 ### ✅ Documentation Compliance Checklist (REQUIRED)
@@ -188,16 +241,28 @@ export function InteractiveComponent() {
 - [x] Followed ALL patterns and rules from the documentation
 - [x] Not generated any code without consulting the relevant docs
 
+### Agent Workflow Completed
+- [x] Manager Agent: Analyzed requirements and identified instruction files
+- [x] Implementation Agent: Generated code following documented patterns
+- [x] Review Agent: Validated code against instruction files - **APPROVED**
+
 ### What Was Implemented
 - Brief description of the feature/fix
 
-### Files Modified/Created
-- `path/to/file1.ts` - Description of changes
-- `path/to/file2.tsx` - Description of changes
+### Files Mod.github/instructions/data-fetching.instructions.md`
+- [x] Read: `.github/instructions/server-actions.instructions.md`
 
-### Documentation References Used (Must List ALL files read)
-- [x] Read: `data-fetching.instructions.md`
-- [x] Read: `server-actions.instructions.md`
+### Patterns Applied
+- ✅ Used RTK Query for data fetching
+- ✅ Implemented Zod validation
+- ✅ Added proper error handling
+- ✅ HTTP 200 only policy enforced
+
+### Code Review Results
+- ✅ TypeScript strict mode compliant
+- ✅ Server components by default
+- ✅ Authentication checked
+- ✅ Error boundaries configuredtructions.md`
 
 ### Patterns Applied
 - ✅ Used RTK Query for data fetching
@@ -210,6 +275,19 @@ export function InteractiveComponent() {
 - [ ] Check error boundaries
 
 ### Next Steps (if applicable)
+## 🎯 Agent Activation
+
+When working on this project:
+
+1. **Manager Agent** identifies the task scope and relevant instruction files
+2. **Implementation Agent** generates code following documented patterns
+3. **Review Agent** validates the implementation
+4. **Manager Agent** delivers final approved code
+
+This ensures **every line of code** is validated against project standards before delivery.
+
+---
+
 - Consider adding unit tests for X
 - May need to update Y when Z is implemented
 ```

@@ -6,6 +6,7 @@ import { Link2, BarChart3, Lock, Zap } from "lucide-react";
 import Link from "next/link";
 import { Alerts } from "@/components/alerts/alerts";
 import { GlobalTime } from "@/components/global-time/GlobalTime";
+import { Weather } from "@/components/weather/Weather";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -29,6 +30,7 @@ export default async function Home() {
           </p>
           <Alerts />
           <GlobalTime />
+          <Weather />
         </div>
       </section>
 
