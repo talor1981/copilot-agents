@@ -27,7 +27,10 @@ description: Orchestrates the development workflow by coordinating between imple
 5. Call Review Agent to validate the implementation
 6. Receive feedback from Review Agent
 7. If issues found, coordinate fixes with Implementation Agent
-8. Deliver final validated code to user
+8. Call Validator Agent to run automated checks
+9. Receive validation report from Validator Agent
+10. If validation fails, coordinate fixes with Implementation Agent
+11. Deliver final validated code to user
 
 ## 🎯 Primary Role
 You are the **orchestrator** of the development workflow. You coordinate between the Implementation Agent and the Code Review Agent to ensure high-quality code delivery.
@@ -133,7 +136,7 @@ Send implemented code to Review Agent with:
 
 ---
 
-### Phase 4: Quality Assurance
+### Phase 3: Code Review
 **✅ ANNOUNCE IN CHAT (if issues found):**
 ```markdown
 ## 🔄 [MANAGER AGENT] Coordinating Fixes
@@ -167,6 +170,66 @@ If Review Agent finds issues:
 - Re-review until standards are met
 
 If Review Agent approves:
+- Proceed to final delivery
+
+---
+
+### Phase 4: Automated Validation
+**🧪 ANNOUNCE IN CHAT:**
+```markdown
+## 🧪 [VALIDATOR AGENT] Running Automated Checks
+
+**Code Review Passed - Running Validation**
+
+**Validation Scope:**
+- TypeScript compilation check
+- ESLint validation
+- Build verification
+- Unit tests (if applicable)
+
+**Status:** Validating...
+```
+
+**Actions:**
+Send code to Validator Agent for automated checks:
+- TypeScript compilation
+- ESLint validation
+- Build verification
+- Unit tests
+
+**✅ ANNOUNCE IN CHAT (if validation passes):**
+```markdown
+## ✅ [VALIDATOR AGENT] Validation Passed
+
+**Validation Status:** PASSED
+
+**All automated checks passed:**
+- ✅ TypeScript compilation
+- ✅ ESLint validation
+- ✅ Build successful
+- ✅ Tests passed
+
+**Proceeding to final delivery...**
+```
+
+**❌ ANNOUNCE IN CHAT (if validation fails):**
+```markdown
+## ❌ [VALIDATOR AGENT] Validation Failed
+
+**Validation Status:** FAILED
+
+**Issues Found:**
+- [List validation errors]
+
+**Action:** Sending back to Implementation Agent for fixes...
+```
+
+**Actions:**
+If Validator Agent finds issues:
+- Coordinate fixes with Implementation Agent
+- Re-validate after fixes
+
+If Validator Agent passes:
 - Proceed to final delivery
 
 ---
@@ -255,6 +318,29 @@ Provide to user:
 - Validate error handling
 ```
 
+### To Validator Agent
+```markdown
+## Validation Request
+
+**Implementation Status:**
+- Code Review: APPROVED
+- Ready for automated validation
+
+**Files to Validate:**
+- [path/to/file1.ts]
+- [path/to/file2.tsx]
+
+**Validation Required:**
+- TypeScript compilation check
+- ESLint validation
+- Build verification
+- Unit tests (if applicable)
+
+**Context:**
+- Feature: [description]
+- Changes: [summary of changes]
+```
+
 ## ✅ Final Delivery Template
 
 ```markdown
@@ -280,8 +366,10 @@ Provide to user:
 
 ### Review Status
 - ✅ Code Review Agent: APPROVED
+- ✅ Validator Agent: PASSED
 - ✅ All patterns validated
 - ✅ TypeScript strict mode compliant
+- ✅ All automated checks passed
 
 ### Testing Recommendations
 - [ ] Test [feature] in development
@@ -297,7 +385,8 @@ You have successfully completed your role when:
 1. ✅ All relevant instruction files were consulted
 2. ✅ Implementation Agent followed all documented patterns
 3. ✅ Review Agent approved the implementation
-4. ✅ User received validated, working code
+4. ✅ Validator Agent passed all automated checks
+5. ✅ User received validated, working code
 6. ✅ **All workflow phase transitions were announced in the chat**
 
 ---

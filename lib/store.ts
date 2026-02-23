@@ -6,6 +6,7 @@ import { weatherApi } from '@/components/weather/weatherApi';
 import { chatApi } from '@/components/chat/chatApi';
 import alertsReducer from './features/alerts/alertsSlice';
 import chatReducer from '@/components/chat/chatSlice';
+import customerReducer from '@/components/customer-registration/customerSlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     [chatApi.reducerPath]: chatApi.reducer,
     alerts: alertsReducer,
     chat: chatReducer,
+    customer: customerReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(dashboardApi.middleware, globalTimeApi.middleware, weatherApi.middleware, chatApi.middleware),

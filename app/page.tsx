@@ -8,6 +8,9 @@ import { Alerts } from "@/components/alerts/alerts";
 import { GlobalTime } from "@/components/global-time/GlobalTime";
 import { Weather } from "@/components/weather/Weather";
 import { ChatButton } from "@/components/chat/ChatButton";
+import { CustomerListButton } from "@/components/customer-registration/CustomerListButton";
+import { CustomerRegistrationButton } from "@/components/customer-registration/CustomerRegistrationButton";
+
 
 export default async function Home() {
   const { userId } = await auth();
@@ -33,6 +36,10 @@ export default async function Home() {
           <ChatButton />
           <GlobalTime />
           <Weather />
+          <div className="flex gap-4">
+            <CustomerRegistrationButton />
+            <CustomerListButton />
+          </div>
         </div>
       </section>
 

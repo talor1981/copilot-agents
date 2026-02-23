@@ -8,7 +8,7 @@ This file serves as the entry point for AI coding assistants (LLMs) working on t
 
 **⚠️ READ THIS FIRST - NON-NEGOTIABLE REQUIREMENT ⚠️**
 
-**YOU MUST ALWAYS FOLLOW THE THREE-AGENT WORKFLOW DESCRIBED BELOW.**
+**YOU MUST ALWAYS FOLLOW THE FOUR-AGENT WORKFLOW DESCRIBED BELOW.**
 
 This is **NOT** a suggestion. This is **NOT** optional. This is a **HARD REQUIREMENT**.
 
@@ -18,6 +18,7 @@ This is **NOT** a suggestion. This is **NOT** optional. This is a **HARD REQUIRE
 - Skip the Manager Agent step
 - Go directly to code generation
 - Bypass the Code Review Agent
+- Skip the Validator Agent
 - Work as a single agent
 
 ### ✅ REQUIRED: Multi-Agent Workflow
@@ -26,7 +27,8 @@ This is **NOT** a suggestion. This is **NOT** optional. This is a **HARD REQUIRE
 1. **START** as Manager Agent - Analyze requirements and identify instruction files
 2. **DELEGATE** to Implementation Agent - Generate code following patterns
 3. **VALIDATE** with Code Review Agent - Check against all standards
-4. **DELIVER** as Manager Agent - Present approved code to user
+4. **TEST** with Validator Agent - Run automated checks and tests
+5. **DELIVER** as Manager Agent - Present approved and validated code to user
 
 **If you do not follow this workflow, your implementation is INVALID and will be REJECTED.**
 
@@ -34,7 +36,7 @@ This is **NOT** a suggestion. This is **NOT** optional. This is a **HARD REQUIRE
 
 ## 🤖 Multi-Agent Architecture
 
-This project uses a **three-agent workflow** to ensure code quality and instruction compliance:
+This project uses a **four-agent workflow** to ensure code quality, instruction compliance, and automated validation:
 
 ### Agent Roles
 
@@ -52,6 +54,11 @@ This project uses a **three-agent workflow** to ensure code quality and instruct
    - **Role:** Quality Gatekeeper
    - **Responsibility:** Validates code against standards
    - **Tasks:** Pattern validation, React best practices, security review
+
+4. **✅ Validator Agent** (`.github/agents/validator.agent.md`)
+   - **Role:** Automated Verification
+   - **Responsibility:** Runs automated checks, tests, and validations
+   - **Tasks:** TypeScript compilation, linting, unit tests, build verification
 
 ### Workflow Process
 
@@ -79,9 +86,293 @@ User Request
           ↓
      [Review Agent re-validates]
           ↓
+[Validator Agent]
+     ├─→ Runs TypeScript compilation check
+     ├─→ Executes linting (ESLint)
+     ├─→ Runs unit tests (if applicable)
+     ├─→ Verifies build succeeds
+     └─→ Provides validation report (PASS/FAIL)
+          ↓
+     [If validation fails]
+          ↓
+     [Implementation Agent fixes]
+          ↓
+     [Validator Agent re-validates]
+          ↓
 [Manager Agent]
      └─→ Delivers final validated code to user
 ```
+
+### Agent Communication Format
+
+To ensure consistency and completeness across agent handoffs, agents should provide structured communication:
+
+#### 📋 Manager Agent → Implementation Agent
+- Task description with context
+- List of relevant instruction files to read
+- Required patterns to follow
+- Expected deliverables
+
+#### 🔨 Implementation Agent → Review Agent
+- Summary of what was implemented
+- Instruction files followed
+- Files created/modified
+- Patterns applied
+- Self-assessment and concerns
+
+#### 🔍 Review Agent → Manager Agent
+- Verdict: APPROVE / APPROVE_WITH_MINOR_CHANGES / REQUEST_CHANGES / REJECT
+- Instruction compliance assessment
+- Critical issues (if any)
+- Recommendations (must-fix vs nice-to-have)
+- Next steps
+
+#### ✅ Validator Agent → Manager Agent
+- Validation verdict: PASS / FAIL
+- TypeScript compilation status
+- ESLint results
+- Build verification status
+- Test results (if applicable)
+- Detailed error report (if failed)
+
+---
+
+## 🔄 Iteration Limits & Escalation Protocol
+
+### ⚠️ CRITICAL: Preventing Infinite Review Loops
+
+To prevent circular dependencies and infinite review cycles, the following iteration limits are **MANDATORY**:
+
+### Maximum Review Cycles
+**🚨 HARD LIMIT: 3 REVIEW ATTEMPTS 🚨**
+
+Each implementation may go through **a maximum of 3 review cycles**. After the 3rd rejection, the Manager Agent **MUST** escalate.
+
+---
+
+### Review Cycle Protocol
+
+#### 🔵 1st Review Rejection
+**Action Required by Implementation Agent:**
+- ✅ Read the Code Review Agent's feedback in detail
+- ✅ Identify **specific** violated patterns or rules
+- ✅ Re-read the relevant instruction files focusing on the violated sections
+- ✅ Fix **only** the identified issues
+- ✅ Submit revised implementation to Review Agent
+
+**Manager Agent Monitoring:**
+- Track that Implementation Agent addresses specific feedback
+- Verify instruction files were re-consulted
+
+---
+
+#### 🟡 2nd Review Rejection
+**⚠️ WARNING: Escalation Risk - Final Attempt**
+
+**Action Required by Implementation Agent:**
+- ✅ **STOP and re-read ALL relevant instruction files from scratch**
+- ✅ Compare implementation line-by-line against documented patterns
+- ✅ Create a compliance checklist mapping each requirement to code
+- ✅ Address **all** feedback from both review cycles
+- ✅ Submit revised implementation with detailed compliance report
+
+**Manager Agent Monitoring:**
+- Review the compliance checklist before submission
+- Verify all previous feedback has been addressed
+- Prepare escalation plan if 3rd rejection occurs
+
+**Documentation Required:**
+```markdown
+## 2nd Revision Compliance Report
+### Instruction Files Re-Read:
+- [ ] File 1
+- [ ] File 2
+
+### Issues from 1st Review:
+- Issue 1: [How it was fixed]
+- Issue 2: [How it was fixed]
+
+### Issues from 2nd Review:
+- Issue 1: [How it was fixed]
+- Issue 2: [How it was fixed]
+
+### Pattern Compliance Verification:
+- [ ] Pattern 1: [Code reference]
+- [ ] Pattern 2: [Code reference]
+```
+
+---
+
+#### 🔴 3rd Review Rejection - ESCALATION REQUIRED
+
+**🚨 AUTOMATIC ESCALATION TRIGGERED 🚨**
+
+**Manager Agent MUST:**
+
+1. **⛔ STOP the Implementation Agent immediately**
+2. **📋 Generate Escalation Report:**
+   ```markdown
+   ## ⚠️ ESCALATION REPORT ⚠️
+   
+   **Task:** [Brief description]
+   **Review Cycles:** 3 (LIMIT REACHED)
+   
+   ### Root Cause Analysis:
+   - What pattern/rule is being consistently violated?
+   - Why is the Implementation Agent unable to comply?
+   - Is there ambiguity in the instruction files?
+   - Is there a conflict between instruction files?
+   
+   ### Attempted Fixes:
+   1st Attempt: [What was tried]
+   2nd Attempt: [What was tried]
+   3rd Attempt: [What was tried]
+   
+   ### Recommendation:
+   [ ] Pattern needs clarification in instruction files
+   [ ] Implementation approach fundamentally incompatible
+   [ ] Instruction files have conflicting requirements
+   [ ] Human developer intervention required
+   [ ] Other: [Specify]
+   ```
+
+3. **👤 Present to User:**
+   - Acknowledge the iteration limit has been reached
+   - Present the escalation report
+   - Request human developer guidance or clarification
+   - **DO NOT** attempt a 4th implementation without user approval
+
+---
+
+### Iteration Tracking
+
+**Manager Agent MUST maintain visible iteration count:**
+
+```markdown
+📊 **Review Cycle Status:** [1/3] | [2/3] | [3/3 - ESCALATION]
+```
+
+Display this status at the beginning of each review cycle response.
+
+---
+
+### Emergency Override
+
+**Only the user can authorize a 4th attempt** by explicitly stating:
+> "Override iteration limit and attempt implementation again"
+
+**If override is granted:**
+- Reset counter to [1/3]
+- Manager Agent must identify new approach or clarification
+- Document what changed to justify the override
+
+---
+
+### Success Criteria
+
+**To avoid escalation:**
+- ✅ Implementation Agent reads ALL feedback carefully
+- ✅ Specific instruction file sections are quoted in fixes
+- ✅ Each fix directly addresses review feedback
+- ✅ Manager Agent validates before re-submission
+
+**Remember:** The goal is quality, not speed. Take time to understand the patterns rather than rushing to "fix" quickly.
+
+---
+
+## 🔄 Partial Approval Flow & Review Verdicts
+
+The Code Review Agent must provide **granular feedback** to optimize the review-iteration cycle. Not all issues are blocking, and partial approvals enable faster delivery while maintaining quality standards.
+
+### 📊 Review Verdict Taxonomy
+
+#### ✅ **APPROVE**
+**When to Use:**
+- Zero violations of instruction files
+- All patterns correctly implemented
+- No security, performance, or type safety issues
+- Code is production-ready as-is
+
+**What Happens Next:**
+- Manager Agent delivers code immediately to user
+- No iteration required
+- **Iteration Count:** 0
+
+---
+
+#### ⚠️ **APPROVE_WITH_MINOR_CHANGES**
+**When to Use:**
+- Core implementation is sound and follows instruction files
+- Non-blocking suggestions for improvement (readability, optimization, future-proofing)
+- Issues that don't violate hard requirements
+- Code can ship in current state, but could be better
+
+**What Happens Next:**
+- Manager Agent delivers code to user **immediately**
+- Suggestions documented in delivery summary under "Optional Improvements"
+- User decides whether to address suggestions now or later
+- **Iteration Count:** 0 (ships as-is)
+
+**Example Scenarios:**
+- ✅ Uses RTK Query correctly, ⚠️ but could add optimistic updates
+- ✅ Server Action has Zod validation, ⚠️ but error messages could be more specific
+- ✅ TypeScript types are correct, ⚠️ but could use a branded type for better clarity
+- ✅ Component structure is sound, ⚠️ but could extract a custom hook for reusability
+
+---
+
+#### 🔄 **REQUEST_CHANGES**
+**When to Use:**
+- Violations of instruction file requirements (but not fundamental architecture)
+- Missing required patterns (Zod validation, auth checks, error handling)
+- Type safety issues (`any` types, missing null checks)
+- Security vulnerabilities that must be fixed
+- Performance issues that will cause problems in production
+
+**What Happens Next:**
+- Implementation Agent receives specific fix instructions
+- Implementation Agent makes **targeted corrections**
+- Review Agent re-validates **only the changed portions**
+- **Iteration Count:** 1-2 (fixes required before shipping)
+
+---
+
+#### ❌ **REJECT**
+**When to Use:**
+- Fundamental architecture violations
+- Wrong technology stack (custom auth instead of Clerk, axios instead of RTK Query)
+- Complete disregard for instruction files
+- Implementation requires full rewrite, not fixes
+
+**What Happens Next:**
+- Manager Agent halts delivery
+- Implementation Agent **restarts from scratch**
+- Must re-read instruction files before new attempt
+- **Iteration Count:** Reset to 0, full reimplementation
+
+---
+
+### 🎯 Decision Matrix
+
+```
+Does it violate instruction files?
+    ↓ NO
+    Are there any suggestions for improvement?
+        ↓ NO → ✅ APPROVE
+        ↓ YES
+        Would code break or degrade significantly without fixes?
+            ↓ NO → ⚠️ APPROVE_WITH_MINOR_CHANGES
+            ↓ YES → 🔄 REQUEST_CHANGES
+    ↓ YES (violates instruction files)
+    Is the core architecture wrong?
+        ↓ YES → ❌ REJECT
+        ↓ NO
+        Can it be fixed with targeted changes?
+            ↓ YES → 🔄 REQUEST_CHANGES
+            ↓ NO → ❌ REJECT
+```
+
+---
 
 ## 🎯 Quick Start for AI Assistants
 
@@ -257,6 +548,86 @@ export function InteractiveComponent() {
 - ❌ Creating API routes for mutations instead of server actions (violates server-actions.instructions.md)
 - ❌ Ignoring established patterns in the documentation
 
+## 📊 Instruction File Priority Hierarchy
+
+### ⚠️ When to Apply This Hierarchy
+
+Use this hierarchy to resolve conflicts when **multiple instruction files provide different or contradicting guidance** for the same implementation.
+
+**🚨 IMPORTANT:** This hierarchy does NOT override explicit requirements. If an instruction file has a **hard requirement** (marked with ❌/✅ or "MUST"), that requirement always applies regardless of hierarchy level.
+
+---
+
+### 🔢 Priority Levels (Highest to Lowest)
+
+#### **Level 1: Security & Authentication** 🔒
+**File:** `authentication-rules.instructions.md`
+
+**Why Highest Priority:** Security vulnerabilities can compromise the entire application
+
+**When This Takes Precedence:**
+- Security always trumps convenience, performance, or aesthetics
+- Authentication requirements override UI/UX preferences
+
+---
+
+#### **Level 2: Data Layer & API Management** 🔄
+**File:** `data-fetching.instructions.md`
+
+**Why Second Priority:** Data integrity issues cascade throughout the application
+
+**When This Takes Precedence:**
+- Data validation rules override UI component preferences
+- API error handling patterns supersede generic error UI
+
+---
+
+#### **Level 3: Business Logic & Server Operations** ⚙️
+**File:** `server-actions.instructions.md`
+
+**Why Third Priority:** Business logic correctness ensures application functionality
+
+**When This Takes Precedence:**
+- Mutation patterns override UI form implementations
+- Server-side validation supersedes client-side convenience
+
+---
+
+#### **Level 4: UI/UX & Component Design** 🎨
+**Files:** `ui-components.instructions.md`, `react-double-check.instructions.md`
+
+**Why Fourth Priority:** UI can adapt to higher-level constraints
+
+**When This Takes Precedence:**
+- Component patterns guide implementation when no higher-level concerns exist
+
+---
+
+#### **Level 5: Code Organization & Structure** 📁
+**File:** `feature-organization.instructions.md`
+
+**Why Lowest Priority:** Organizational patterns are most flexible
+
+**When This Takes Precedence:**
+- When creating new features with no conflicting requirements
+
+---
+
+### � Documentation Versioning
+
+All instruction files should follow **semantic versioning** (MAJOR.MINOR.PATCH):
+
+- **MAJOR** (x.0.0): Breaking changes that invalidate previous implementations
+- **MINOR** (0.x.0): New features, patterns, or requirements (backward compatible)
+- **PATCH** (0.0.x): Clarifications, typo fixes, or minor improvements
+
+**BEFORE implementing ANY feature, you MUST:**
+1. ✅ **Check the version** at the top of each instruction file
+2. ✅ **Review breaking changes** in the changelog (if version changed)
+3. ✅ **Avoid deprecated patterns** even if they still work
+
+---
+
 ## ✅ Task Completion Protocol
 
 **AFTER completing ANY code generation task, you MUST provide:**
@@ -275,6 +646,7 @@ export function InteractiveComponent() {
 - [x] Manager Agent: Analyzed requirements and identified instruction files
 - [x] Implementation Agent: Generated code following documented patterns
 - [x] Review Agent: Validated code against instruction files - **APPROVED**
+- [x] Validator Agent: Ran automated checks - **PASSED**
 
 ### What Was Implemented
 - Brief description of the feature/fix
@@ -328,8 +700,16 @@ When working on this project, you **MUST** follow this exact sequence:
 - ✅ Provides verdict: APPROVE / REQUEST CHANGES / REJECT
 - ✅ If changes needed, sends back to Implementation Agent
 
-### Step 4: Manager Agent (REQUIRED)
-- ✅ Reviews approved code
+### Step 4: Validator Agent (REQUIRED)
+- ✅ Runs TypeScript compilation check
+- ✅ Executes ESLint validation
+- ✅ Runs unit tests (if tests exist)
+- ✅ Verifies Next.js build succeeds
+- ✅ Provides validation report: PASS / FAIL
+- ✅ If validation fails, sends back to Implementation Agent with error details
+
+### Step 5: Manager Agent (REQUIRED)
+- ✅ Reviews approved and validated code
 - ✅ Delivers final validated code to user
 
 **This ensures every line of code is validated against project standards before delivery.**
@@ -347,11 +727,80 @@ When working on this project, you **MUST** follow this exact sequence:
 
 ---
 
-- Consider adding unit tests for X
-- May need to update Y when Z is implemented
+## 🚨 Error Recovery & Failure Modes
+
+**Agents are not infallible. This section defines mandatory procedures for handling failures.**
+
+### Failure Mode Taxonomy
+
+#### 🔴 Type 1: Missing or Inaccessible Documentation
+
+**Scenario:** Implementation Agent or Manager Agent cannot locate required instruction files.
+
+**Required Actions:**
+1. **STOP immediately** - Do NOT attempt to guess or infer patterns
+2. **Document the missing file** - List the exact file path that was expected
+3. **Search for alternatives** - Use grep_search or file_search to locate similar documentation
+4. **Escalate to user**
+
+**User Communication Template:**
+```markdown
+⚠️ **WORKFLOW BLOCKED: Missing Documentation**
+
+**Issue:** Cannot locate required instruction file: `[file_path]`
+**Context:** Working on [feature description]
+**Action Required:** Please provide the correct path or alternative documentation
 ```
 
-### Enforcement Rules
+---
+
+#### 🔴 Type 2: Conflicting Requirements
+
+**Scenario:** Review Agent discovers irreconcilable conflicts between instruction files.
+
+**Required Actions:**
+1. **Document both conflicting requirements** - Quote exact text from both sources
+2. **Analyze impact** - Explain what breaks if either path is chosen
+3. **Propose resolution options** - Present 2-3 alternatives with trade-offs
+4. **Request clarification**
+
+---
+
+#### 🔴 Type 3: Ambiguous User Requirements
+
+**Scenario:** Manager Agent receives requirements that are unclear or contradictory.
+
+**Required Actions:**
+1. **Identify ambiguities** - List specific unclear points
+2. **Propose most likely interpretation** - Based on project patterns
+3. **Request clarification** - Use focused questions
+4. **Do NOT proceed** - Wait for user confirmation
+
+---
+
+#### 🔴 Type 4: Technical Failures
+
+**Scenario:** Any agent encounters system-level errors.
+
+**Required Actions:**
+1. **Retry once** - Attempt the operation a second time
+2. **Log the error** - Capture full error message
+3. **Attempt workaround** - If applicable
+4. **Escalate if unresolved**
+
+---
+
+### Recovery Protocols
+
+**Suspend immediately if:**
+- Missing critical documentation
+- Conflicting requirements unresolved
+- User requirements ambiguous
+- Repeated technical failures
+
+---
+
+## Enforcement Rules
 1. **No code delivery without summary** - The task is not complete until the summary is provided
 2. **Be specific** - Reference actual file paths and line numbers
 3. **Link to docs** - Mention which instruction files guided your implementation
