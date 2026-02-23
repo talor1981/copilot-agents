@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { createLinkAction } from './actions';
+import { useState, useEffect } from 'react';
+import { createLinkAction, updateLinkAction } from './actions';
 import { useDispatch } from 'react-redux';
-import { dashboardApi } from './dashboardApi';
+import { dashboardApi, UserLink } from './dashboardApi';
 import {
   Dialog,
   DialogContent,
@@ -18,11 +18,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 
-export function CreateLinkDialog() {
-  const [open, setOpen] = useState(false);
+interface CreateLinkDialogProps {
+  editMode?: boolean;
+  editData?: UserLink;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function CreateLinkDialog({ 
+  editMode = false, 
+  editData, 
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange 
+}: CreateLinkDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
+
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
+
+  // Reset form when dialog opens/closes
+  useEffect(() => {
+    if (!open) {
+      setError(null);
+    }
+  }, [open]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,44 +55,89 @@ export function CreateLinkDialog() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    
+    // Client-side validation
+    const shortCode = formData.get('shortCode') as string;
+    const originalUrl = formData.get('originalUrl') as string;
+    
+    // Validate short code format
+    if (!/^[a-zA-Z0-9_-]+$/.test(shortCode)) {
+      setError('Short code can only contain letters, numbers, hyphens, and underscores');
+      setIsLoading(false);
+      return;
+    }
+    
+    // Validate URL format
+    try {
+      const url = new URL(originalUrl);
+      if (!url.protocol.startsWith('http')) {
+        setError('URL must start with http:// or https://');
+        setIsLoading(false);
+        return;
+      }
+    } catch {
+      setError('Please enter a valid URL');
+      setIsLoading(false);
+      return;
+    }
 
-    // Extract and type data explicitly
-    const input = {
-      shortCode: formData.get('shortCode') as string,
-      originalUrl: formData.get('originalUrl') as string,
-    };
+    if (editMode && editData) {
+      // Update existing link
+      const input = {
+        linkId: editData.id,
+        shortCode,
+        originalUrl,
+      };
 
-    const result = await createLinkAction(input);
+      const result = await updateLinkAction(input);
 
-    if (result.success) {
-      // Invalidate RTK Query cache to refetch user's links
-      dispatch(dashboardApi.util.invalidateTags(['UserLinks']));
-      
-      // Close dialog and reset form
-      setOpen(false);
-      (e.target as HTMLFormElement).reset();
+      if (result.success) {
+        dispatch(dashboardApi.util.invalidateTags(['UserLinks']));
+        setOpen(false);
+      } else {
+        setError(result.error || 'Failed to update link');
+      }
     } else {
-      // Show error
-      setError(result.error || 'Failed to create link');
+      // Create new link
+      const input = {
+        shortCode,
+        originalUrl,
+      };
+
+      const result = await createLinkAction(input);
+
+      if (result.success) {
+        dispatch(dashboardApi.util.invalidateTags(['UserLinks']));
+        setOpen(false);
+        (e.target as HTMLFormElement).reset();
+      } else {
+        setError(result.error || 'Failed to create link');
+      }
     }
 
     setIsLoading(false);
   }
 
+  const defaultTrigger = (
+    <Button size="lg">
+      <Plus className="w-4 h-4 mr-2" />
+      Create Link
+    </Button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg">
-          <Plus className="w-4 h-4 mr-2" />
-          Create Link
-        </Button>
+        {trigger || defaultTrigger}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create Short Link</DialogTitle>
+            <DialogTitle>{editMode ? 'Edit Link' : 'Create Short Link'}</DialogTitle>
             <DialogDescription>
-              Create a new shortened link. Enter the original URL and choose a custom short code.
+              {editMode 
+                ? 'Update your shortened link details.' 
+                : 'Create a new shortened link. Enter the original URL and choose a custom short code.'}
             </DialogDescription>
           </DialogHeader>
           
@@ -81,6 +151,7 @@ export function CreateLinkDialog() {
                 name="originalUrl"
                 type="url"
                 placeholder="https://example.com/very-long-url"
+                defaultValue={editData?.originalUrl || ''}
                 required
                 disabled={isLoading}
               />
@@ -98,6 +169,7 @@ export function CreateLinkDialog() {
                 pattern="[a-zA-Z0-9_-]+"
                 minLength={3}
                 maxLength={10}
+                defaultValue={editData?.shortCode || ''}
                 required
                 disabled={isLoading}
               />
@@ -123,7 +195,9 @@ export function CreateLinkDialog() {
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'Create Link'}
+              {isLoading 
+                ? (editMode ? 'Updating...' : 'Creating...') 
+                : (editMode ? 'Update Link' : 'Create Link')}
             </Button>
           </DialogFooter>
         </form>

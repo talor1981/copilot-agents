@@ -1,10 +1,11 @@
 'use client';
 
-import { useGetPublicApisQuery, useGetUserLinksQuery } from './dashboardApi';
+import { useState } from 'react';
+import { useGetPublicApisQuery, useGetUserLinksQuery, useDeleteUserLinkMutation, UserLink } from './dashboardApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreateLinkDialog } from './CreateLinkDialog';
-import { ExternalLink, Link2 } from 'lucide-react';
+import { ExternalLink, Link2, Trash2, Pencil } from 'lucide-react';
 
 export function DashboardContent() {
   const { data, error, isLoading, refetch } = useGetPublicApisQuery({ 
@@ -19,6 +20,32 @@ export function DashboardContent() {
     isLoading: linksLoading,
     refetch: refetchLinks 
   } = useGetUserLinksQuery();
+  
+  // Delete mutation
+  const [deleteLink, { isLoading: isDeleting }] = useDeleteUserLinkMutation();
+  
+  // Edit state
+  const [editingLink, setEditingLink] = useState<UserLink | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // Handle edit
+  const handleEdit = (link: UserLink) => {
+    setEditingLink(link);
+    setIsEditDialogOpen(true);
+  };
+
+  // Handle delete
+  const handleDelete = async (linkId: string) => {
+    if (confirm('Are you sure you want to delete this link?')) {
+      try {
+        await deleteLink(linkId).unwrap();
+      } catch (error: any) {
+        console.error('Failed to delete link:', error);
+        const errorMessage = error?.message || error?.data?.error || 'Failed to delete link. Please try again.';
+        alert(errorMessage);
+      }
+    }
+  };
 
   // Error Boundary pattern: throw error to nearest boundary if critical
   if (error) {
@@ -59,6 +86,17 @@ export function DashboardContent() {
         </div>
       </div>
 
+      {/* Edit Dialog - Hidden trigger, controlled externally */}
+      {editingLink && (
+        <CreateLinkDialog
+          editMode={true}
+          editData={editingLink}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          trigger={<div style={{ display: 'none' }} />}
+        />
+      )}
+
       {/* User's Links Section */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
@@ -67,39 +105,61 @@ export function DashboardContent() {
         </div>
         
         {userLinks && userLinks.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {userLinks.map((link) => (
-              <Card key={link.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <code className="text-lg font-mono font-semibold">
-                          /{link.shortCode}
-                        </code>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {link.originalUrl}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Created: {new Date(link.createdAt).toLocaleDateString()}
-                      </p>
+              <Card key={link.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="text-4xl mb-2">🔗</div>
+                  </div>
+                  <CardTitle className="line-clamp-1 font-mono">
+                    /{link.shortCode}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {link.originalUrl}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Created:</span>
+                      <span className="font-medium">
+                        {new Date(link.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      asChild
-                    >
-                      <a 
-                        href={link.originalUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2"
+                    <div className="flex gap-2 mt-4">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1"
+                        asChild
                       >
-                        <ExternalLink className="h-4 w-4" />
-                        Visit
-                      </a>
-                    </Button>
+                        <a 
+                          href={link.originalUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Visit
+                        </a>
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleEdit(link)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleDelete(link.id)}
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

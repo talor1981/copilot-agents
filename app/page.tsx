@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link2, BarChart3, Lock, Zap } from "lucide-react";
 import Link from "next/link";
+import { Alerts } from "@/components/alerts/alerts";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -25,16 +26,7 @@ export default async function Home() {
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
             Create short, memorable links in seconds. Track performance, manage your URLs, and make every click count.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Link href="/dashboard">
-              <Button size="lg" className="text-lg px-8">
-                Get Started Free
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8" asChild>
-              <a href="#features">Learn More</a>
-            </Button>
-          </div>
+          <Alerts />
         </div>
       </section>
 

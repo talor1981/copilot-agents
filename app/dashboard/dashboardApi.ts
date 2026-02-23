@@ -105,6 +105,44 @@ export const dashboardApi = createApi({
       },
       providesTags: ['UserLinks'],
     }),
+    
+    // Delete a user's link
+    deleteUserLink: builder.mutation<{ success: boolean }, string>({
+      query: (linkId) => ({
+        url: `/api/links/${linkId}`,
+        method: 'DELETE',
+      }),
+      transformResponse: (response: { success: boolean; error?: string }, meta) => {
+        if (meta?.response?.status !== 200) {
+          throw new Error('API Response was not 200 OK');
+        }
+        // Check if the logical operation succeeded
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to delete link');
+        }
+        return response;
+      },
+      invalidatesTags: ['UserLinks'],
+    }),
+    
+    // Update a user's link
+    updateUserLink: builder.mutation<{ success: boolean; data: UserLink }, { linkId: string; shortCode: string; originalUrl: string }>({
+      query: ({ linkId, shortCode, originalUrl }) => ({
+        url: `/api/links/${linkId}`,
+        method: 'PUT',
+        body: { shortCode, originalUrl },
+      }),
+      transformResponse: (response: { success: boolean; error?: string; data?: UserLink }, meta) => {
+        if (meta?.response?.status !== 200) {
+          throw new Error('API Response was not 200 OK');
+        }
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to update link');
+        }
+        return response as { success: boolean; data: UserLink };
+      },
+      invalidatesTags: ['UserLinks'],
+    }),
   }),
 });
 
@@ -114,4 +152,6 @@ export const {
   useGetRandomApiQuery, 
   useGetApiByIdQuery,
   useGetUserLinksQuery,
+  useDeleteUserLinkMutation,
+  useUpdateUserLinkMutation,
 } = dashboardApi;

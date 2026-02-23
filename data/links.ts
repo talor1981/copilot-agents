@@ -38,3 +38,29 @@ export async function deleteLink(linkId: string, userId: string) {
       )
     );
 }
+
+export async function updateLink(
+  linkId: string,
+  data: {
+    shortCode: string;
+    originalUrl: string;
+  },
+  userId: string
+) {
+  const [link] = await db
+    .update(links)
+    .set({
+      shortCode: data.shortCode,
+      originalUrl: data.originalUrl,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(
+      and(
+        eq(links.id, linkId),
+        eq(links.userId, userId)
+      )
+    )
+    .returning();
+  
+  return link;
+}

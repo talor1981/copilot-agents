@@ -6,11 +6,17 @@ This file serves as the entry point for AI coding assistants (LLMs) working on t
 
 ### ⚠️ MANDATORY: Documentation-First Workflow
 
-**BEFORE writing ANY code, you MUST:**
+**🚨 NON-NEGOTIABLE REQUIREMENT 🚨**
 
-1. ✅ Read the ENTIRE relevant documentation file(s)
-2. ✅ Follow ALL rules and patterns specified in those files
-3. ✅ Only THEN generate code that adheres to the documented standards
+**BEFORE writing a SINGLE LINE of code, you MUST:**
+
+1. ✅ **READ THE ENTIRE relevant documentation file(s)** - No exceptions, no shortcuts
+2. ✅ **FOLLOW ALL rules and patterns** specified in those files - These are requirements, not suggestions
+3. ✅ **ONLY THEN generate code** that strictly adheres to the documented standards
+
+**❌ FAILURE TO READ DOCUMENTATION = INVALID CODE**
+
+If you generate code without first reading the relevant instruction files, your implementation will be rejected. This is not a "nice to have" - it is a **hard requirement**.
 
 ### Priority Guidelines
 
@@ -131,18 +137,36 @@ export function InteractiveComponent() {
 
 ## 🚀 Getting Started
 
-## � Required Reading by Feature
+### 🛑 PRE-IMPLEMENTATION CHECKPOINT
 
-Before implementing any feature, read the relevant instruction files:
+**Before you proceed with ANY task, answer these questions:**
 
+1. ✅ Have I identified which instruction files are relevant to this task?
+2. ✅ Have I read those instruction files in their ENTIRETY?
+3. ✅ Do I understand the patterns and rules I need to follow?
+4. ✅ Am I ready to implement code that strictly follows those patterns?
+
+**If you answered "NO" to ANY question, STOP and read the documentation first.**
+
+## 📚 MANDATORY Reading by Feature
+
+**🔴 STOP - READ FIRST - CODE SECOND 🔴**
+
+**You MUST read the relevant instruction files BEFORE implementing ANY feature. No code should be written without first consulting these files:**
+
+- **Feature Organization & Folder Structure** → [feature-organization.instructions.md](.github/instructions/feature-organization.instructions.md)
 - **Authentication & User Management** → [authentication-rules.instructions.md](.github/instructions/authentication-rules.instructions.md)
 - **Data Fetching & RTK Query** → [data-fetching.instructions.md](.github/instructions/data-fetching.instructions.md)
 - **Server Actions & Mutations** → [server-actions.instructions.md](.github/instructions/server-actions.instructions.md)
 - **UI Components** → [ui-components.instructions.md](.github/instructions/ui-components.instructions.md)
+- **React Best Practices** → [react-double-check-instructions.md](.github/instructions/react-double-check-instructions.md)
 
 ## 🚫 Common Mistakes to Avoid
 
-- ❌ Writing code without reading the relevant `instructions` files first
+### ❌ CRITICAL ERROR #1: Writing code without reading the relevant `instructions` files first
+**This is the #1 mistake and will result in code rejection. ALWAYS read documentation FIRST.**
+
+### Other Violations:
 - ❌ Using custom UI components instead of shadcn/ui (violates ui-components.instructions.md)
 - ❌ Implementing custom auth instead of Clerk (violates authentication-rules.instructions.md)
 - ❌ Using direct Drizzle queries in server actions (violates server-actions.instructions.md)
@@ -150,6 +174,52 @@ Before implementing any feature, read the relevant instruction files:
 - ❌ Creating API routes for mutations instead of server actions (violates server-actions.instructions.md)
 - ❌ Ignoring established patterns in the documentation
 
+## ✅ Task Completion Protocol
+
+**AFTER completing ANY code generation task, you MUST provide:**
+
+### Summary Format:
+```
+## 📝 Task Summary
+
+### ✅ Documentation Compliance Checklist (REQUIRED)
+**I CONFIRM that I have:**
+- [x] Read the COMPLETE instruction file(s) BEFORE writing code
+- [x] Followed ALL patterns and rules from the documentation
+- [x] Not generated any code without consulting the relevant docs
+
+### What Was Implemented
+- Brief description of the feature/fix
+
+### Files Modified/Created
+- `path/to/file1.ts` - Description of changes
+- `path/to/file2.tsx` - Description of changes
+
+### Documentation References Used (Must List ALL files read)
+- [x] Read: `data-fetching.instructions.md`
+- [x] Read: `server-actions.instructions.md`
+
+### Patterns Applied
+- ✅ Used RTK Query for data fetching
+- ✅ Implemented Zod validation
+- ✅ Added proper error handling
+
+### Testing Recommendations
+- [ ] Test the new feature in development
+- [ ] Verify authentication flow
+- [ ] Check error boundaries
+
+### Next Steps (if applicable)
+- Consider adding unit tests for X
+- May need to update Y when Z is implemented
+```
+
+### Enforcement Rules
+1. **No code delivery without summary** - The task is not complete until the summary is provided
+2. **Be specific** - Reference actual file paths and line numbers
+3. **Link to docs** - Mention which instruction files guided your implementation
+4. **Flag deviations** - If you deviated from documented patterns, explain why
+
 ---
 
-**Note**: This project follows modern Next.js 15+ conventions with App Router, Server Components, and Server Actions as the primary patterns. 
+**Note**: This project follows modern Next.js 15+ conventions with App Router, Server Components, and Server Actions as the primary patterns.
