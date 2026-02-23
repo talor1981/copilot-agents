@@ -16,6 +16,7 @@ components/
     ├── [FeatureName].tsx          # Main feature component
     ├── [FeatureName]Slice.ts      # Redux slice for UI/UX state
     ├── [FeatureName]Api.ts        # RTK Query API for server state
+    ├── types.ts                   # TypeScript interfaces and types
     └── [FeatureName].module.css   # Feature-specific styles (optional)
 ```
 
@@ -27,6 +28,7 @@ components/
     ├── UserProfile.tsx           # Main component
     ├── userProfileSlice.ts       # UI state (modals, form state, etc.)
     ├── userProfileApi.ts         # Server data fetching/mutations
+    ├── types.ts                  # API contracts and data models
     └── UserProfile.module.css    # Styles (if needed)
 ```
 
@@ -75,7 +77,93 @@ export function UserProfile() {
 
 ---
 
-### 2. **[featureName]Slice.ts** - Redux Slice for UI/UX State
+### 2. **types.ts** - TypeScript Interfaces and Types
+
+**Purpose:** Contains all TypeScript type definitions, interfaces, and models for the feature
+
+**Use Cases:**
+- ✅ API request/response contracts (e.g., from Swagger/OpenAPI)
+- ✅ Data models (e.g., `Person`, `Employee`, `Link`, `User`)
+- ✅ Form validation schemas
+- ✅ Component prop types (if complex)
+- ✅ Enums and constants with types
+- ❌ Do NOT duplicate types that exist in global types
+
+**Rules:**
+- ✅ Keep all types in one file per feature for easy import
+- ✅ Use clear, descriptive names (e.g., `UserProfile`, not `Profile`)
+- ✅ Export all types for use in component, slice, and API files
+- ✅ Use JSDoc comments for complex types
+- ✅ Prefer `interface` for object shapes, `type` for unions/intersections
+
+**Example:**
+```typescript
+/**
+ * User profile data returned from the API
+ * @see /api/user/profile endpoint
+ */
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  role: UserRole;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Request payload for updating user profile
+ */
+export interface UpdateProfileRequest {
+  name?: string;
+  avatar?: string;
+}
+
+/**
+ * Response from profile update mutation
+ */
+export interface UpdateProfileResponse {
+  success: boolean;
+  profile: UserProfile;
+  message?: string;
+}
+
+/**
+ * User role enum
+ */
+export enum UserRole {
+  Admin = 'admin',
+  User = 'user',
+  Guest = 'guest',
+}
+
+/**
+ * Form state for profile editor
+ */
+export interface ProfileFormData {
+  name: string;
+  avatar: string;
+  isDirty: boolean;
+  errors: Record<string, string>;
+}
+```
+
+**Import Pattern:**
+```typescript
+// In userProfileApi.ts
+import { UserProfile, UpdateProfileRequest } from './types';
+
+// In userProfileSlice.ts
+import { ProfileFormData } from './types';
+
+// In UserProfile.tsx
+import { UserProfile, UserRole } from './types';
+```
+
+---
+
+### 3. **[featureName]Slice.ts** - Redux Slice for UI/UX State
 
 **Purpose:** Manages **client-side UI state** (not server data)
 
@@ -146,7 +234,7 @@ export const store = configureStore({
 
 ---
 
-### 3. **[featureName]Api.ts** - RTK Query API for Server State
+### 4. **[featureName]Api.ts** - RTK Query API for Server State
 
 **Purpose:** Manages **server state** - data fetching, mutations, caching
 
@@ -166,18 +254,7 @@ export const store = configureStore({
 **Example:**
 ```typescript
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-}
-
-interface UpdateProfileRequest {
-  name?: string;
-  avatar?: string;
-}
+import { UserProfile, UpdateProfileRequest } from './types';
 
 export const userProfileApi = createApi({
   reducerPath: 'userProfileApi',
@@ -224,7 +301,7 @@ export const store = configureStore({
 
 ---
 
-### 4. **[FeatureName].module.css** - Feature-Specific Styles (Optional)
+### 5. **[FeatureName].module.css** - Feature-Specific Styles (Optional)
 
 **Purpose:** Contains styles specific to this feature
 
@@ -260,7 +337,8 @@ export const store = configureStore({
 components/
 └── stats-dashboard/
     ├── StatsDashboard.tsx        # Display component
-    └── statsDashboardApi.ts      # Fetch stats from server
+    ├── statsDashboardApi.ts      # Fetch stats from server
+    └── types.ts                  # Stats data models
 ```
 *No slice needed - no UI state to manage*
 
@@ -275,6 +353,7 @@ components/
     ├── LinkEditorForm.tsx        # Sub-component
     ├── linkEditorSlice.ts        # UI state (modal, form validation)
     ├── linkEditorApi.ts          # CRUD operations for links
+    ├── types.ts                  # Link models and API contracts
     └── LinkEditor.module.css     # Custom styles
 ```
 
@@ -290,6 +369,7 @@ components/
     ├── AnalyticsTable.tsx        # Table sub-component
     ├── analyticsSlice.ts         # Date range, filters, view mode
     ├── analyticsApi.ts           # Fetch analytics data
+    ├── types.ts                  # Analytics data models
     └── index.ts                  # Barrel export
 ```
 
@@ -298,6 +378,7 @@ components/
 export { Analytics } from './Analytics';
 export { useGetAnalyticsQuery } from './analyticsApi';
 export { selectDateRange, setDateRange } from './analyticsSlice';
+export type { AnalyticsData, DateRange, ChartDataPoint } from './types';
 ```
 
 ---
@@ -422,8 +503,9 @@ Before implementing features, read:
 **Every feature MUST:**
 1. Live in its own folder under `components/[feature-name]/`
 2. Have a main component file: `[FeatureName].tsx`
-3. Have an RTK Query API file if it needs server data: `[featureName]Api.ts`
-4. Have a Redux slice if it needs UI state: `[featureName]Slice.ts`
-5. Optionally have styles: `[FeatureName].module.css`
+3. Have a types file: `types.ts` (for API contracts, data models, interfaces)
+4. Have an RTK Query API file if it needs server data: `[featureName]Api.ts`
+5. Have a Redux slice if it needs UI state: `[featureName]Slice.ts`
+6. Optionally have styles: `[FeatureName].module.css`
 
 **This is NOT optional - it's the standard pattern for this project.**

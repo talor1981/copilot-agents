@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Link2, BarChart3, Lock, Zap } from "lucide-react";
 import Link from "next/link";
 import { Alerts } from "@/components/alerts/alerts";
+import { GlobalTime } from "@/components/global-time/GlobalTime";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -27,6 +28,7 @@ export default async function Home() {
             Create short, memorable links in seconds. Track performance, manage your URLs, and make every click count.
           </p>
           <Alerts />
+          <GlobalTime />
         </div>
       </section>
 
